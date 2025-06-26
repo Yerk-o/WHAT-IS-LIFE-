@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamlined Cellular Swarm</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #F5F5DC;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            transition: background 0.3s ease;
+        }
+        body.dark-mode {
+            background: #1a1a1a;
+        }
+        canvas {
+            display: block;
+            cursor: none;
+        }
+        
+        #controllers {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 60px 32px 32px 32px;
+            width: 280px;
+            border-left: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        body.dark-mode #controllers {
+            background: rgba(0, 0, 0, 0.25);
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .controllers-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0 0 28px 0;
+        }
+        body.dark-mode .controllers-title {
+            color: rgba(244, 244, 217, 1);
+        }
+        
+        .model-section {
+            margin-bottom: 20px;
+        }
+        .model-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        body.dark-mode .model-label {
+            color: rgba(244, 244, 217, 0.8);
+        }
+        
+        .model-select {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.04);
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            color: #1a1a1a;
+            cursor: pointer;
+        }
+        body.dark-mode .model-select {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(244, 244, 217, 1);
+        }
+        
+        .shape-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .shape-input {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.04);
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            color: #1a1a1a;
+        }
+        body.dark-mode .shape-input {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(244, 244, 217, 1);
+        }
+        .shape-input::placeholder {
+            color: #999;
+        }
+        
+        .ai-pattern-btn {
+            padding: 14px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        body.dark-mode .ai-pattern-btn {
+            background: rgba(244, 244, 217, 1);
+            color: #1a1a1a;
+        }
+        
+        .slider-group {
+            margin-bottom: 18px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .slider-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        body.dark-mode .slider-name {
+            color: rgba(244, 244, 217, 0.8);
+        }
+        .slider-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        body.dark-mode .slider-value {
+            color: rgba(244, 244, 217, 1);
+        }
+        
+        .slider-track {
+            position: relative;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 3px;
+        }
+        body.dark-mode .slider-track {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: transparent;
+            outline: none;
+            position: absolute;
+            top: 0;
+            cursor: pointer;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #333;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+        }
+        body.dark-mode .slider::-webkit-slider-thumb {
+            background: rgba(244, 244, 217, 1);
+        }
+        
+        .bottom-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 28px;
+        }
+        .bottom-btn {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.04);
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        body.dark-mode .bottom-btn {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(244, 244, 217, 1);
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border: 2px solid rgba(51, 51, 51, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+            display: none;
+        }
+        
+        .forming-status {
+            font-size: 14px;
+            color: #666;
+            margin-top: 12px;
+            text-align: center;
+        }
+        body.dark-mode .forming-status {
+            color: rgba(244, 244, 217, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <audio autoplay>
+        <source src="MALIBU.mp3" type="audio/mpeg">
+    </audio>
+    <canvas id="canvas"></canvas>
+    <div class="custom-cursor"></div>
+    
+    <div id="controllers">
+        <h2 class="controllers-title">Controllers</h2>
+        
+        <div class="model-section">
+            <div class="model-label">Model</div>
+            <select class="model-select" id="behaviorMode">
+                <option value="standard">Standard</option>
+                <option value="predator">Predator-Prey</option>
+                <option value="swarm">Swarm</option>
+                <option value="spiral">Spiral Flow</option>
+            </select>
+        </div>
+        
+        <div class="shape-section">
+            <input type="text" class="shape-input" id="wordInput" placeholder="describe your emotion" value="overwhelming sadness">
+            <button class="ai-pattern-btn" id="aiPatternBtn">AI pattern</button>
+        </div>
+        
+        <div class="slider-group">
+            <div class="slider-label">
+                <span class="slider-name">Speed</span>
+                <span class="slider-value" id="speedValue">0.8</span>
+            </div>
+            <div class="slider-track">
+                <input type="range" class="slider" id="speedSlider" min="0.2" max="2" value="0.8" step="0.1">
+            </div>
+        </div>
+        
+        <div class="slider-group">
+            <div class="slider-label">
+                <span class="slider-name">Clustering</span>
+                <span class="slider-value" id="cohesionValue">0.12</span>
+            </div>
+            <div class="slider-track">
+                <input type="range" class="slider" id="cohesionSlider" min="0" max="0.3" value="0.12" step="0.01">
+            </div>
+        </div>
+        
+        <div class="slider-group">
+            <div class="slider-label">
+                <span class="slider-name">Repulsion</span>
+                <span class="slider-value" id="separationValue">25</span>
+            </div>
+            <div class="slider-track">
+                <input type="range" class="slider" id="separationSlider" min="10" max="60" value="25" step="1">
+            </div>
+        </div>
+        
+        <div class="slider-group">
+            <div class="slider-label">
+                <span class="slider-name">Wandering</span>
+                <span class="slider-value" id="curveValue">0.30</span>
+            </div>
+            <div class="slider-track">
+                <input type="range" class="slider" id="curveSlider" min="0" max="1.0" value="0.30" step="0.01">
+            </div>
+        </div>
+        
+        <div class="bottom-buttons">
+            <button class="bottom-btn" id="resetBtn">Reset</button>
+            <button class="bottom-btn" id="pauseBtn">Pause</button>
+            <button class="bottom-btn" id="darkModeBtn">Light</button>
+        </div>
+        
+        <div id="formingStatus" class="forming-status"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        let dots = [];
+        let paused = false;
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        let darkMode = false;
+        let time = 0;
+        let formingShape = false;
+        let targetShape = null;
+        
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:5000';
+        
+        let params = {
+            speed: 0.8,
+            cohesion: 0.12,
+            separation: 25,
+            curve: 0.15
+        };
+        
+        const customCursor = document.querySelector('.custom-cursor');
+        let cursorVisible = false;
+        
+        // Shape and emotion templates
+        const patterns = {
+            // Shapes
+            face: generateFaceShape,
+            brain: generateBrainShape,
+            flower: generateFlowerShape,
+            
+            // Emotions
+            sadness: generateSadnessPattern,
+            calm: generateCalmPattern,
+            happiness: generateHappinessPattern,
+            love: generateLovePattern,
+            delirium: generateDeliriumPattern
+        };
+        
+        class Dot {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = Math.random() * 0.8 + 0.5;
+                this.age = Math.random() * 1000;
+                this.streamId = Math.floor(Math.random() * 8);
+                this.type = Math.random() > 0.7 ? 'predator' : 'prey';
+                this.targetX = null;
+                this.targetY = null;
+                this.energy = 1;
+                this.isChaotic = false;
+                this.chaosForceX = 0;
+                this.chaosForceY = 0;
+            }
+            
+            update() {
+                this.age++;
+                time++;
+                
+                // Apply continuous chaos if in delirium mode
+                if (this.isChaotic) {
+                    this.vx += this.chaosForceX * (Math.random() - 0.5);
+                    this.vy += this.chaosForceY * (Math.random() - 0.5);
+                    
+                    // Random direction changes
+                    if (Math.random() < 0.1) {
+                        this.chaosForceX = (Math.random() - 0.5) * 0.5;
+                        this.chaosForceY = (Math.random() - 0.5) * 0.5;
+                    }
+                }
+                
+                if (formingShape && this.targetX !== null && this.targetY !== null) {
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 5) {
+                        const force = Math.min(dist * 0.05, 3);
+                        this.vx += (dx / dist) * force * 0.1;
+                        this.vy += (dy / dist) * force * 0.1;
+                    }
+                } else {
+                    const mode = document.getElementById('behaviorMode').value;
+                    
+                    switch(mode) {
+                        case 'standard':
+                            this.standardBehavior();
+                            break;
+                        case 'predator':
+                            this.predatorPreyBehavior();
+                            break;
+                        case 'swarm':
+                            this.swarmBehavior();
+                            break;
+                        case 'spiral':
+                            this.spiralFlow();
+                            break;
+                    }
+                }
+                
+                // Apply friction
+                this.vx *= 0.96;
+                this.vy *= 0.96;
+                
+                // Update position
+                this.x += this.vx * params.speed;
+                this.y += this.vy * params.speed;
+                
+                // Wrap around edges
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            
+            standardBehavior() {
+                // Organic circle gathering behavior
+                let avgX = 0, avgY = 0, count = 0;
+                let sepX = 0, sepY = 0;
+                
+                // Subtle mouse attraction when mouse is in the area
+                const mouseDistance = Math.sqrt((mouseX - this.x) ** 2 + (mouseY - this.y) ** 2);
+                if (mouseDistance < 150 && mouseDistance > 0) {
+                    const mouseForce = 0.0008; // Very subtle force
+                    const dx = mouseX - this.x;
+                    const dy = mouseY - this.y;
+                    this.vx += (dx / mouseDistance) * mouseForce;
+                    this.vy += (dy / mouseDistance) * mouseForce;
+                }
+                
+                dots.forEach(other => {
+                    if (other !== this) {
+                        const dx = other.x - this.x;
+                        const dy = other.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < 120 && dist > 0) {
+                            avgX += other.x;
+                            avgY += other.y;
+                            count++;
+                        }
+                        
+                        if (dist < params.separation && dist > 0) {
+                            sepX -= dx / dist;
+                            sepY -= dy / dist;
+                        }
+                    }
+                });
+                
+                if (count > 0) {
+                    // Move toward center of nearby dots (organic clustering)
+                    const centerX = avgX / count;
+                    const centerY = avgY / count;
+                    
+                    // Add organic imperfection to prevent perfect circles
+                    const noise = Math.sin(this.age * 0.02) * 20;
+                    const organicX = centerX + noise;
+                    const organicY = centerY + Math.cos(this.age * 0.015) * 15;
+                    
+                    this.vx += (organicX - this.x) * params.cohesion * 0.008;
+                    this.vy += (organicY - this.y) * params.cohesion * 0.008;
+                }
+                
+                // Separation
+                this.vx += sepX * 0.05;
+                this.vy += sepY * 0.05;
+                
+                // Random organic movement
+                this.vx += (Math.random() - 0.5) * 0.015;
+                this.vy += (Math.random() - 0.5) * 0.015;
+            }
+            
+            predatorPreyBehavior() {
+                if (this.type === 'predator') {
+                    // Bigger radius for predators
+                    this.radius = Math.max(this.radius, 1.2);
+                    
+                    let nearestPrey = null;
+                    let minDist = Infinity;
+                    
+                    dots.forEach(other => {
+                        if (other.type === 'prey') {
+                            const dist = Math.sqrt((other.x - this.x) ** 2 + (other.y - this.y) ** 2);
+                            if (dist < minDist && dist < 150) {
+                                minDist = dist;
+                                nearestPrey = other;
+                            }
+                        }
+                    });
+                    
+                    if (nearestPrey) {
+                        const dx = nearestPrey.x - this.x;
+                        const dy = nearestPrey.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist > 0) {
+                            this.vx += (dx / dist) * 0.02;
+                            this.vy += (dy / dist) * 0.02;
+                        }
+                    }
+                } else {
+                    // Smaller radius for prey
+                    this.radius = Math.min(this.radius, 0.8);
+                    
+                    // Flee from predators
+                    dots.forEach(other => {
+                        if (other.type === 'predator') {
+                            const dx = other.x - this.x;
+                            const dy = other.y - this.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (dist < 80 && dist > 0) {
+                                this.vx -= (dx / dist) * 0.03;
+                                this.vy -= (dy / dist) * 0.03;
+                            }
+                        }
+                    });
+                }
+                
+                // Add playful randomness
+                this.vx += (Math.random() - 0.5) * 0.02;
+                this.vy += (Math.random() - 0.5) * 0.02;
+            }
+            
+            swarmBehavior() {
+                // Combined dense swarm and wave motion
+                let avgX = 0, avgY = 0, avgVx = 0, avgVy = 0;
+                let sepX = 0, sepY = 0;
+                let count = 0;
+                
+                dots.forEach(other => {
+                    if (other !== this) {
+                        const dx = other.x - this.x;
+                        const dy = other.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < 80 && dist > 0) {
+                            avgX += other.x;
+                            avgY += other.y;
+                            avgVx += other.vx;
+                            avgVy += other.vy;
+                            count++;
+                            
+                            if (dist < params.separation) {
+                                sepX -= dx / dist;
+                                sepY -= dy / dist;
+                            }
+                        }
+                    }
+                });
+                
+                if (count > 0) {
+                    // Cohesion
+                    this.vx += ((avgX / count) - this.x) * params.cohesion * 0.01;
+                    this.vy += ((avgY / count) - this.y) * params.cohesion * 0.01;
+                    
+                    // Alignment
+                    this.vx += (avgVx / count - this.vx) * 0.05;
+                    this.vy += (avgVy / count - this.vy) * 0.05;
+                }
+                
+                // Separation
+                this.vx += sepX * 0.1;
+                this.vy += sepY * 0.1;
+                
+                // Wave motion component
+                const waveX = Math.sin(this.y * 0.01 + time * 0.005) * params.curve * 8;
+                const waveY = Math.cos(this.x * 0.008 + time * 0.003) * params.curve * 6;
+                
+                this.vx += waveX * 0.002;
+                this.vy += waveY * 0.002;
+                
+                // Random movement
+                this.vx += (Math.random() - 0.5) * 0.02;
+                this.vy += (Math.random() - 0.5) * 0.02;
+            }
+            
+            spiralFlow() {
+                const centerX = canvas.width / 2 + Math.sin(time * 0.001) * 100;
+                const centerY = canvas.height / 2 + Math.cos(time * 0.0007) * 80;
+                
+                const dx = this.x - centerX;
+                const dy = this.y - centerY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > 0) {
+                    // Spiral force
+                    const spiralAngle = Math.atan2(dy, dx) + params.curve * 2;
+                    this.vx += Math.cos(spiralAngle) * 0.015;
+                    this.vy += Math.sin(spiralAngle) * 0.015;
+                    
+                    // Inward pull
+                    this.vx -= dx * 0.0002;
+                    this.vy -= dy * 0.0002;
+                }
+            }
+            
+            draw() {
+                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                // Reduced tail length by 50%
+                const finalRadius = this.radius + Math.min(speed * 0.15, 0.2);
+                
+                let alpha = Math.min(0.8, 0.3 + speed * 0.5);
+                
+                let color;
+                if (darkMode) {
+                    color = `rgba(244, 244, 217, ${alpha})`;
+                } else {
+                    color = `rgba(60, 60, 60, ${alpha})`;
+                }
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, finalRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // Pattern generation functions
+        function generateFaceShape() {
+            const points = [];
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.25;
+            
+            // Face outline
+            for (let i = 0; i < dots.length * 0.5; i++) {
+                const angle = (i / (dots.length * 0.5)) * Math.PI * 2;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                points.push({ x, y });
+            }
+            
+            // Eyes
+            const eyeY = centerY - radius * 0.3;
+            const eyeSpacing = radius * 0.4;
+            
+            for (let i = 0; i < dots.length * 0.15; i++) {
+                const angle = (i / (dots.length * 0.15)) * Math.PI * 2;
+                const eyeRadius = radius * 0.08;
+                
+                points.push({
+                    x: centerX - eyeSpacing + eyeRadius * Math.cos(angle),
+                    y: eyeY + eyeRadius * Math.sin(angle)
+                });
+                
+                points.push({
+                    x: centerX + eyeSpacing + eyeRadius * Math.cos(angle),
+                    y: eyeY + eyeRadius * Math.sin(angle)
+                });
+            }
+            
+            // Mouth
+            for (let i = 0; i < dots.length * 0.2; i++) {
+                const t = i / (dots.length * 0.2);
+                const angle = Math.PI * 0.2 + Math.PI * 0.6 * t;
+                const mouthRadius = radius * 0.5;
+                
+                const x = centerX + mouthRadius * Math.cos(angle);
+                const y = centerY + mouthRadius * Math.sin(angle);
+                points.push({ x, y });
+            }
+            
+            return points;
+        }
+        
+        function generateBrainShape() {
+            const points = [];
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = Math.min(canvas.width, canvas.height) * 0.25;
+            
+            for (let i = 0; i < dots.length; i++) {
+                const t = i / dots.length;
+                const angle = t * Math.PI * 4;
+                
+                const r = scale * (0.8 + 0.3 * Math.sin(angle * 2) + 0.1 * Math.sin(angle * 5));
+                const x = centerX + r * Math.cos(angle) * (1 + 0.2 * Math.sin(angle));
+                const y = centerY + r * Math.sin(angle) * 0.7;
+                
+                points.push({ x: x + Math.sin(angle * 10) * 10, y: y + Math.cos(angle * 8) * 10 });
+            }
+            
+            return points;
+        }
+        
+        function generateFlowerShape() {
+            const points = [];
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.25;
+            const petals = 6;
+            
+            for (let i = 0; i < dots.length; i++) {
+                const t = (i / dots.length) * Math.PI * 2;
+                const r = radius * (1 + 0.5 * Math.cos(petals * t));
+                
+                const x = centerX + r * Math.cos(t);
+                const y = centerY + r * Math.sin(t);
+                points.push({ x, y });
+            }
+            
+            return points;
+        }
+        
+        function generateSadnessPattern() {
+            // Slow, downward drifting pattern
+            dots.forEach(dot => {
+                dot.vx = dot.vx * 0.3; // Slow movement
+                dot.vy = dot.vy * 0.3 + 0.01; // Downward drift
+                dot.radius = dot.radius * 0.8; // Smaller, sadder dots
+            });
+            
+            document.getElementById('behaviorMode').value = 'standard';
+            return null;
+        }
+        
+        function generateCalmPattern() {
+            // Gentle, peaceful movement
+            dots.forEach(dot => {
+                dot.vx = Math.sin(dot.age * 0.01) * 0.2;
+                dot.vy = Math.cos(dot.age * 0.008) * 0.15;
+                dot.radius = 0.7; // Consistent calm size
+            });
+            
+            document.getElementById('behaviorMode').value = 'standard';
+            return null;
+        }
+        
+        function generateHappinessPattern() {
+            // Excited, upward, energetic movement
+            dots.forEach(dot => {
+                dot.vx = dot.vx + (Math.random() - 0.5) * 0.2;
+                dot.vy = dot.vy - Math.random() * 0.1; // Upward tendency
+                dot.radius = dot.radius * 1.4; // Bigger, more energetic
+            });
+            
+            document.getElementById('behaviorMode').value = 'standard';
+            return null;
+        }
+        
+        function generateLovePattern() {
+            // Form a big circle, coming together
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.25;
+            
+            const points = [];
+            dots.forEach((dot, i) => {
+                const angle = (i / dots.length) * Math.PI * 2;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                points.push({ x, y });
+                dot.radius = 1.0; // Heart-sized dots
+            });
+            
+            document.getElementById('behaviorMode').value = 'standard';
+            return points;
+        }
+        
+        function generateDeliriumPattern() {
+            // Biggest chaotic pattern possible
+            dots.forEach(dot => {
+                dot.vx = (Math.random() - 0.5) * 8; // Much more chaotic velocity
+                dot.vy = (Math.random() - 0.5) * 8;
+                dot.radius = Math.random() * 3 + 0.2; // Much bigger size variation
+                
+                // Add continuous chaotic forces
+                dot.chaosForceX = (Math.random() - 0.5) * 0.5;
+                dot.chaosForceY = (Math.random() - 0.5) * 0.5;
+                dot.isChaotic = true;
+            });
+            
+            document.getElementById('behaviorMode').value = 'standard';
+            return null;
+        }
+        
+        // NEW AI-ENHANCED EXECUTE PATTERN FUNCTION
+        async function executeAIPattern() {
+            const emotionText = document.getElementById('wordInput').value.toLowerCase().trim();
+            
+            if (!emotionText) {
+                document.getElementById('formingStatus').textContent = 'Please enter an emotion or feeling';
+                return;
+            }
+            
+            // Show loading status
+            document.getElementById('formingStatus').textContent = `Analyzing "${emotionText}" with AI...`;
+            
+            try {
+                // First, try to use the AI API
+                const response = await fetch(`${API_BASE_URL}/generate-emotion-pattern`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ emotion: emotionText })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Apply the AI-generated pattern to your dots
+                        applyAIPattern(data.pattern, data.interpretation);
+                        
+                        // Show success message
+                        const aiLabel = data.ai_used ? 'AI' : 'Smart';
+                        document.getElementById('formingStatus').textContent = 
+                            `${aiLabel}: ${data.interpretation}`;
+                        
+                        console.log('✅ AI Pattern applied:', data);
+                        return;
+                    }
+                }
+                
+                throw new Error('API request failed');
+                
+            } catch (error) {
+                console.log('⚠️ API unavailable, using local patterns:', error);
+                
+                // Fallback to your existing local patterns
+                executeLocalPattern(emotionText);
+            }
+        }
+        
+        // New function to apply AI-generated patterns
+        function applyAIPattern(aiPattern, interpretation) {
+            // Update the behavior mode dropdown
+            const behaviorSelect = document.getElementById('behaviorMode');
+            if (behaviorSelect && aiPattern.behavior) {
+                behaviorSelect.value = aiPattern.behavior;
+            }
+            
+            // Update all the parameter sliders with AI values
+            if (aiPattern.speed !== undefined) {
+                document.getElementById('speedSlider').value = aiPattern.speed;
+                document.getElementById('speedValue').textContent = aiPattern.speed.toFixed(1);
+                params.speed = aiPattern.speed;
+            }
+            
+            if (aiPattern.cohesion !== undefined) {
+                document.getElementById('cohesionSlider').value = aiPattern.cohesion;
+                document.getElementById('cohesionValue').textContent = aiPattern.cohesion.toFixed(2);
+                params.cohesion = aiPattern.cohesion;
+            }
+            
+            if (aiPattern.separation !== undefined) {
+                document.getElementById('separationSlider').value = aiPattern.separation;
+                document.getElementById('separationValue').textContent = aiPattern.separation.toString();
+                params.separation = aiPattern.separation;
+            }
+            
+            if (aiPattern.curve !== undefined) {
+                document.getElementById('curveSlider').value = aiPattern.curve;
+                document.getElementById('curveValue').textContent = aiPattern.curve.toFixed(2);
+                params.curve = aiPattern.curve;
+            }
+            
+            // Apply special effects to dots based on emotion
+            applyEmotionEffects(aiPattern);
+        }
+        
+        // New function to apply visual effects based on emotion
+        function applyEmotionEffects(pattern) {
+            const emotionText = document.getElementById('wordInput').value.toLowerCase().trim();
+            
+            dots.forEach(dot => {
+                // Reset any special states
+                dot.isChaotic = false;
+                dot.chaosForceX = 0;
+                dot.chaosForceY = 0;
+                
+                // Apply emotion-specific effects
+                if (emotionText.includes('chaos') || emotionText.includes('manic') || pattern.curve > 0.7) {
+                    // Chaotic emotions
+                    dot.isChaotic = true;
+                    dot.chaosForceX = (Math.random() - 0.5) * 0.3;
+                    dot.chaosForceY = (Math.random() - 0.5) * 0.3;
+                    dot.radius = Math.random() * 2 + 0.3;
+                } else if (emotionText.includes('sad') || emotionText.includes('depress') || pattern.speed < 0.5) {
+                    // Sad emotions - smaller, slower
+                    dot.radius = dot.radius * 0.7;
+                    dot.vy += 0.01; // Slight downward drift
+                } else if (emotionText.includes('joy') || emotionText.includes('happy') || pattern.speed > 1.4) {
+                    // Happy emotions - bigger, more energetic
+                    dot.radius = dot.radius * 1.3;
+                    dot.vy -= Math.random() * 0.05; // Slight upward tendency
+                } else if (emotionText.includes('love') || pattern.cohesion > 0.2) {
+                    // Love emotions - drawn together
+                    dot.radius = Math.max(dot.radius, 0.8);
+                }
+            });
+        }
+        
+        // Enhanced fallback for when API is not available
+        function executeLocalPattern(emotionText) {
+            // Check if it matches existing local patterns first
+            if (patterns[emotionText]) {
+                // Use existing local pattern
+                const result = patterns[emotionText]();
+                
+                if (result) {
+                    // Shape formation
+                    formingShape = true;
+                    targetShape = result;
+                    
+                    dots.forEach((dot, i) => {
+                        if (targetShape[i]) {
+                            dot.targetX = targetShape[i].x;
+                            dot.targetY = targetShape[i].y;
+                        }
+                    });
+                    
+                    setTimeout(() => {
+                        formingShape = false;
+                        dots.forEach(dot => {
+                            dot.targetX = null;
+                            dot.targetY = null;
+                        });
+                        document.getElementById('formingStatus').textContent = 'Pattern complete!';
+                    }, 5000);
+                } else {
+                    setTimeout(() => {
+                        document.getElementById('formingStatus').textContent = 'Emotion pattern active!';
+                    }, 1000);
+                }
+            } else {
+                // Create a simple interpretation for unknown emotions
+                const simple = createSimpleEmotionPattern(emotionText);
+                applyAIPattern(simple.pattern, simple.interpretation);
+                document.getElementById('formingStatus').textContent = `📱 Local: ${simple.interpretation}`;
+            }
+        }
+        
+        // Simple local emotion analysis for unknown patterns
+        function createSimpleEmotionPattern(emotionText) {
+            const text = emotionText.toLowerCase();
+            
+            // Default pattern
+            let pattern = {
+                speed: 0.8,
+                cohesion: 0.12,
+                separation: 25,
+                curve: 0.30,
+                behavior: 'standard'
+            };
+            
+            let interpretation = `Pattern for "${emotionText}"`;
+            
+            // Simple keyword analysis
+            if (text.includes('fast') || text.includes('quick') || text.includes('energy')) {
+                pattern.speed = 1.6;
+                pattern.curve = 0.6;
+                interpretation = 'Fast, energetic movement';
+            } else if (text.includes('slow') || text.includes('calm') || text.includes('peace')) {
+                pattern.speed = 0.4;
+                pattern.curve = 0.1;
+                interpretation = 'Slow, peaceful movement';
+            } else if (text.includes('together') || text.includes('love') || text.includes('group')) {
+                pattern.cohesion = 0.25;
+                pattern.separation = 15;
+                interpretation = 'Clustering, affectionate movement';
+            } else if (text.includes('chaos') || text.includes('random') || text.includes('wild')) {
+                pattern.curve = 0.8;
+                pattern.behavior = 'spiral';
+                interpretation = 'Chaotic, unpredictable movement';
+            }
+            
+            return { pattern, interpretation };
+        }
+        
+        // Add API health check function
+        async function checkAPIConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    console.log('✅ API connection successful');
+                    return true;
+                }
+            } catch (error) {
+                console.log('⚠️ API not available, using local patterns only');
+                return false;
+            }
+        }
+        
+        function createDots() {
+            const newDots = [];
+            
+            // Create organic clusters
+            for (let cluster = 0; cluster < 6; cluster++) {
+                const clusterX = Math.random() * canvas.width;
+                const clusterY = Math.random() * canvas.height;
+                
+                for (let i = 0; i < 40; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 80;
+                    
+                    const x = clusterX + Math.cos(angle) * distance;
+                    const y = clusterY + Math.sin(angle) * distance;
+                    
+                    newDots.push(new Dot(x, y));
+                }
+            }
+            
+            return newDots;
+        }
+        
+        function reset() {
+            dots = createDots();
+            formingShape = false;
+            document.getElementById('formingStatus').textContent = '';
+        }
+        
+        function togglePause() {
+            paused = !paused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            pauseBtn.textContent = paused ? 'Play' : 'Pause';
+        }
+        
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            const darkBtn = document.getElementById('darkModeBtn');
+            
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                darkBtn.textContent = 'Dark';
+            } else {
+                document.body.classList.remove('dark-mode');
+                darkBtn.textContent = 'Light';
+            }
+        }
+        
+        function updateParameters() {
+            params.speed = parseFloat(document.getElementById('speedSlider').value);
+            params.cohesion = parseFloat(document.getElementById('cohesionSlider').value);
+            params.separation = parseFloat(document.getElementById('separationSlider').value);
+            params.curve = parseFloat(document.getElementById('curveSlider').value);
+            
+            document.getElementById('speedValue').textContent = params.speed.toFixed(1);
+            document.getElementById('cohesionValue').textContent = params.cohesion.toFixed(2);
+            document.getElementById('separationValue').textContent = params.separation;
+            document.getElementById('curveValue').textContent = params.curve.toFixed(2);
+        }
+        
+        // Event listeners
+        canvas.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            customCursor.style.left = (e.clientX - 30) + 'px';
+            customCursor.style.top = (e.clientY - 30) + 'px';
+            
+            if (!cursorVisible) {
+                customCursor.style.display = 'block';
+                cursorVisible = true;
+            }
+        });
+        
+        canvas.addEventListener('mouseenter', () => {
+            customCursor.style.display = 'block';
+            cursorVisible = true;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            customCursor.style.display = 'none';
+            cursorVisible = false;
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            // Create a lot more dots when clicking (increased from 10 to 30)
+            for (let i = 0; i < 30; i++) {
+                const newX = e.clientX + (Math.random() - 0.5) * 80;
+                const newY = e.clientY + (Math.random() - 0.5) * 80;
+                dots.push(new Dot(newX, newY));
+            }
+        });
+        
+        document.getElementById('speedSlider').addEventListener('input', updateParameters);
+        document.getElementById('cohesionSlider').addEventListener('input', updateParameters);
+        document.getElementById('separationSlider').addEventListener('input', updateParameters);
+        document.getElementById('curveSlider').addEventListener('input', updateParameters);
+        
+        document.getElementById('resetBtn').addEventListener('click', reset);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('darkModeBtn').addEventListener('click', toggleDarkMode);
+        document.getElementById('aiPatternBtn').addEventListener('click', executeAIPattern);
+        
+        document.getElementById('wordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                executeAIPattern();
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        function animate() {
+            if (!paused) {
+                // Clear canvas with a fade effect
+                ctx.fillStyle = darkMode ? 'rgba(26, 26, 26, 0.2)' : 'rgba(245, 245, 220, 0.2)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Update and draw dots
+                dots.forEach(dot => {
+                    dot.update();
+                    dot.draw();
+                });
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize the dots and start animation
+        function initialize() {
+            // Create initial dots
+            dots = createDots();
+            
+            // Start animation
+            animate();
+            
+            // Event listeners for mouse movement
+            canvas.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                // Update custom cursor
+                if (cursorVisible) {
+                    customCursor.style.transform = `translate(${mouseX - 30}px, ${mouseY - 30}px)`;
+                }
+            });
+            
+            // Event listeners for UI controls
+            document.getElementById('speedSlider').addEventListener('input', (e) => {
+                params.speed = parseFloat(e.target.value);
+                document.getElementById('speedValue').textContent = params.speed.toFixed(1);
+            });
+            
+            document.getElementById('cohesionSlider').addEventListener('input', (e) => {
+                params.cohesion = parseFloat(e.target.value);
+                document.getElementById('cohesionValue').textContent = params.cohesion.toFixed(2);
+            });
+            
+            document.getElementById('separationSlider').addEventListener('input', (e) => {
+                params.separation = parseInt(e.target.value);
+                document.getElementById('separationValue').textContent = params.separation.toString();
+            });
+            
+            document.getElementById('curveSlider').addEventListener('input', (e) => {
+                params.curve = parseFloat(e.target.value);
+                document.getElementById('curveValue').textContent = params.curve.toFixed(2);
+            });
+            
+            // Button event listeners
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                dots = createDots();
+                formingShape = false;
+                targetShape = null;
+            });
+            
+            document.getElementById('pauseBtn').addEventListener('click', function() {
+                paused = !paused;
+                this.textContent = paused ? 'Resume' : 'Pause';
+            });
+            
+            document.getElementById('darkModeBtn').addEventListener('click', function() {
+                darkMode = !darkMode;
+                document.body.classList.toggle('dark-mode');
+                this.textContent = darkMode ? 'Light' : 'Dark';
+            });
+            
+            // AI pattern button
+            document.getElementById('aiPatternBtn').addEventListener('click', executeAIPattern);
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+            
+            // Initial API health check
+            checkAPIConnection();
+        }
+
+        // Start everything
+        initialize();
+    </script>
+</body>
+</html>
